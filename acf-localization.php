@@ -2,7 +2,7 @@
 /**
   * @link              https://www.smartling.com
   * @since             1.0.0
-  * @package           acf-localization
+  * @package           smartling-acf-localization
   * @wordpress-plugin
   * Plugin Name:       ACF localization
   * Description:       Extend Smartling Connector functionality to support ACF options page
