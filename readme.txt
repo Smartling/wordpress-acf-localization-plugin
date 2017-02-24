@@ -4,7 +4,7 @@ Contributors: smartling
 Tags: automation, international, internationalisation, internationalization, localisation, localization, multilingual, smartling, translate, translation, acf
 Requires at least: 4.6
 Tested up to: 4.7.2
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPL-3.0 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -41,6 +41,10 @@ Additional information on the Smartling Connector for WordPress can be found [th
 1. The Bulk Submit page allows submission of standard WordPress assets including ACF options text for all configured locales from a single interface.
 
 == Changelog ==
+
+= 1.1 =
+* Changed option name where plugin stores map for options from `acf_option_key_map` to `smartling_acf_option_key_map`
+* Minor bugfixes
 
 = 1.0 =
 The initial release. It allows translate only content of ACF Options Pages

@@ -12,7 +12,7 @@
   * Network:           true
   * License URI:       http://www.gnu.org/licenses/gpl-3.0.txt
   * ConnectorRequiredMin: 4.1
-  * Version: 1.0
+  * Version: 1.1
 */
 
 /**
