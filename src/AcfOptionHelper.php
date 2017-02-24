@@ -7,7 +7,7 @@ namespace Smartling;
  */
 class AcfOptionHelper
 {
-    const ACF_OPTION_KEY_MAP = 'acf_option_key_map';
+    const ACF_OPTION_KEY_MAP = 'smartling_acf_option_key_map';
 
     /**
      * @var int
