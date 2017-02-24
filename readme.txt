@@ -1,7 +1,7 @@
 === Smartling ACF localization ===
 
 Contributors: smartling
-Tags: automation, international, internationalisation, internationalization, localisation, localization, multilingual, smartling, translate, translation, acf
+Tags: automation, international, internationalisation, internationalization, localisation, localization, multilingual, smartling, translate, translation, acf, advanced, custom, custom field
 Requires at least: 4.6
 Tested up to: 4.7.2
 Stable tag: 1.1
@@ -38,7 +38,9 @@ Additional information on the Smartling Connector for WordPress can be found [th
 
 == Screenshots ==
 
-1. The Bulk Submit page allows submission of standard WordPress assets including ACF options text for all configured locales from a single interface.
+1. Sample page is built with ACF Options.
+2. The Bulk Submit page allows submission of standard WordPress assets including ACF options text for all configured locales from a single interface.
+3. Track translation status within WordPress from the Submissions Board. View overall progress of submitted translation requests as well as resend updated content.
 
 == Changelog ==
 
