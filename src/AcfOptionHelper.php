@@ -164,7 +164,7 @@ class AcfOptionHelper
         $instance = new self($state['name']);
         $instance->setValue($state['value']);
 
-        if (array_key_exists('id', $state['id']) && null !== $state['id'] && 0 < (int)$state['id']) {
+        if (array_key_exists('id', $state) && null !== $state['id'] && 0 < (int)$state['id']) {
             $instance->setId((int)$state['id']);
         }
 
