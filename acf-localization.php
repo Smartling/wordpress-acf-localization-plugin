@@ -28,9 +28,7 @@ if (!class_exists('\Smartling\Bootloader')) {
 if (is_admin()){
     add_action('plugins_loaded', function () {
         add_action('smartling_before_init', function (\Symfony\Component\DependencyInjection\ContainerBuilder $di) {
-            add_action('init', function () use ($di) {
-                \Smartling\Bootloader::boot(__FILE__, $di);
-            });
+            \Smartling\Bootloader::boot(__FILE__, $di);
         });
     });
 }
