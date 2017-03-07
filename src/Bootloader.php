@@ -1,7 +1,9 @@
 <?php
 
-namespace Smartling;
+namespace Smartling\ACF;
 
+use Smartling\Bootstrap;
+use Smartling\ContentTypeAcfOption;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
@@ -80,6 +82,7 @@ class Bootloader
             require_once __DIR__ . DIRECTORY_SEPARATOR . 'AcfOptionEntity.php';
             require_once __DIR__ . DIRECTORY_SEPARATOR . 'AcfOptionHelper.php';
             require_once __DIR__ . DIRECTORY_SEPARATOR . 'ContentTypeAcfOption.php';
+            require_once __DIR__ . DIRECTORY_SEPARATOR . 'AcfAutoSetup.php';
             (new static($di))->run();
         }
     }
@@ -107,7 +110,8 @@ class Bootloader
 
     public function run()
     {
-        ContentTypeAcfOption::register($this->di);
+
+        AcfAutoSetup::register($this->getDi());
     }
 
     public function __construct(ContainerBuilder $di)

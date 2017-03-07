@@ -18,7 +18,7 @@
 /**
  * Autoloader starts always
  */
-if (!class_exists('\Smartling\Bootloader')) {
+if (!class_exists('\Smartling\ACF\Bootloader')) {
     require_once plugin_dir_path(__FILE__) . 'src/Bootloader.php';
 }
 
@@ -28,7 +28,7 @@ if (!class_exists('\Smartling\Bootloader')) {
 if (is_admin() || (defined('DOING_CRON') && true === DOING_CRON)){
     add_action('plugins_loaded', function () {
         add_action('smartling_before_init', function (\Symfony\Component\DependencyInjection\ContainerBuilder $di) {
-            \Smartling\Bootloader::boot(__FILE__, $di);
+            \Smartling\ACF\Bootloader::boot(__FILE__, $di);
         });
     });
 }
