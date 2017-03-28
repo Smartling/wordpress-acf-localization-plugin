@@ -226,6 +226,7 @@ class AcfAutoSetup
                 case 'time_picker':
                 case 'color_picker':
                 case 'google_map':
+                case 'flexible_content':
                     $this->rules['copy'][] = $id;
                     break;
                 case 'user':
