@@ -4,7 +4,7 @@ Contributors: smartling
 Tags: automation, international, internationalisation, internationalization, localisation, localization, multilingual, smartling, translate, translation, acf, advanced, custom, custom field
 Requires at least: 4.6
 Tested up to: 4.7.3
-Stable tag: 1.2
+Stable tag: 1.2.1
 License: GPL-3.0 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -43,6 +43,9 @@ Additional information on the Smartling Connector for WordPress can be found [th
 3. Track translation status within WordPress from the Submissions Board. View overall progress of submitted translation requests as well as resend updated content.
 
 == Changelog ==
+= 1.2.1 =
+* minor improvements
+
 = 1.2 =
 * Added fully automatic configuration for ACF-pro list of fields. Requires fields and groups to be registered via php code (`Custom Fields`->`Tools`->`Generate export code`), `init` hook should be used to add fields. The `user` field is excluded from translation.
 

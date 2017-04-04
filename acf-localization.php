@@ -1,19 +1,19 @@
 <?php
 /**
-  * @link              https://www.smartling.com
-  * @since             1.0.0
-  * @package           smartling-acf-localization
-  * @wordpress-plugin
-  * Plugin Name:       ACF localization
-  * Description:       Extend Smartling Connector functionality to support ACF options page
-  * Plugin URI:        https://www.smartling.com/translation-software/wordpress-translation-plugin/
-  * Author URI:        https://www.smartling.com
-  * License:           GPL-3.0+
-  * Network:           true
-  * License URI:       http://www.gnu.org/licenses/gpl-3.0.txt
-  * ConnectorRequiredMin: 4.1
-  * Version: 1.1
-*/
+ * @link              https://www.smartling.com
+ * @since             1.0.0
+ * @package           smartling-acf-localization
+ * @wordpress-plugin
+ * Plugin Name:       ACF localization
+ * Description:       Extend Smartling Connector functionality to support ACF options page
+ * Plugin URI:        https://www.smartling.com/translation-software/wordpress-translation-plugin/
+ * Author URI:        https://www.smartling.com
+ * License:           GPL-3.0+
+ * Network:           true
+ * License URI:       http://www.gnu.org/licenses/gpl-3.0.txt
+ * Version:           1.2.1
+ * ConnectorRequiredMin: 1.5.0
+ */
 
 /**
  * Autoloader starts always

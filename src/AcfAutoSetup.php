@@ -78,7 +78,7 @@ class AcfAutoSetup
             }
 
             foreach ($acf->local->fields as $field) {
-//                Bootstrap::DebugPrint($field);
+                //                Bootstrap::DebugPrint($field);
                 $this->addFieldDefinition($field);
             }
 
@@ -240,6 +240,10 @@ class AcfAutoSetup
                 case 'gallery':
                 case 'taxonomy': // look into taxonomy
                     $this->rules['localize'][] = $id;
+                    break;
+                case 'repeater':
+                case 'message':
+                case 'tab':
                     break;
                 default:
                     $this->getDi()->get('logger')->debug(vsprintf('Got unknown type: %s', [$definition['type']]));

@@ -61,7 +61,7 @@ class Bootloader
         $requiredVersion = self::getPluginMeta($pluginFile, 'ConnectorRequiredMin');
         $realVersion = Bootstrap::$pluginVersion;
 
-        return version_compare($requiredVersion, $realVersion, '>=');
+        return version_compare($realVersion, $requiredVersion, '>=');
     }
 
     /**
@@ -73,7 +73,7 @@ class Bootloader
         if (false === self::checkConnectorVersion($pluginFile)) {
             self::displayErrorMessage(
                 vsprintf(
-                    '<strong>%s</strong> extension plugin requires <strong>%s</strong> plugin version at least<strong>%s</strong>.',
+                    '<strong>%s</strong> extension plugin requires <strong>%s</strong> plugin version at least <strong>%s</strong>.',
                     [self::getPluginName($pluginFile), 'Smartling Connector',
                      self::getPluginMeta($pluginFile, 'ConnectorRequiredMin')]
                 )
