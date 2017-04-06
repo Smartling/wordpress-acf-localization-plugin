@@ -2,7 +2,6 @@
 
 namespace Smartling\ACF;
 
-use Smartling\Bootstrap;
 use Smartling\ContentTypeAcfOption;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -68,6 +67,19 @@ class AcfAutoSetup
     {
         if (true === $this->checkOptionPages()) {
             ContentTypeAcfOption::register($this->getDi());
+            add_filter(
+                'smartling_register_field_filter',
+                function (array $defs) {
+                    return array_merge(
+                        $defs,
+                        [
+                            [
+                                'pattern' => 'menu_slug$',
+                                'action'  => 'copy',
+                            ],
+                        ]
+                    );
+                });
         }
 
         if (true === $this->checkAcfTypes()) {
@@ -78,10 +90,8 @@ class AcfAutoSetup
             }
 
             foreach ($acf->local->fields as $field) {
-                //                Bootstrap::DebugPrint($field);
                 $this->addFieldDefinition($field);
             }
-
 
             $this->sortFields();
 
@@ -204,7 +214,6 @@ class AcfAutoSetup
             if ('group' === $definition['global_type']) {
                 continue;
             }
-            //Bootstrap::DebugPrint($definition, true);
             switch ($definition['type']) {
                 case 'text':
                 case 'textarea':
