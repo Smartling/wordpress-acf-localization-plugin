@@ -11,7 +11,7 @@
  * License:           GPL-3.0+
  * Network:           true
  * License URI:       http://www.gnu.org/licenses/gpl-3.0.txt
- * Version:           1.2.2
+ * Version:           1.3.0
  * ConnectorRequiredMin: 1.5.0
  */
 

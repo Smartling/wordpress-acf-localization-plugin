@@ -4,7 +4,7 @@ Contributors: smartling
 Tags: automation, international, internationalisation, internationalization, localisation, localization, multilingual, smartling, translate, translation, acf, advanced, custom, custom field
 Requires at least: 4.6
 Tested up to: 4.8
-Stable tag: 1.2.2
+Stable tag: 1.3.0
 License: GPL-3.0 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -47,6 +47,10 @@ Additional information on the Smartling Connector for WordPress can be found [th
 3. Track translation status within WordPress from the Submissions Board. View overall progress of submitted translation requests as well as resend updated content.
 
 == Changelog ==
+= 1.3.0 =
+* Added full automatic handling for standard (built-in) ACF fields (translation works without configuration regeneration).
+* Added automatic check for Database and PHP definitions to detect if PHP version is outdated.
+
 = 1.2.2 =
 * Tested with 4.8 Wordpress release.
 
