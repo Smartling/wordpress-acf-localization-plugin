@@ -2,7 +2,11 @@
 
 namespace Smartling\ACF;
 
+use Psr\Log\LoggerInterface;
 use Smartling\ContentTypeAcfOption;
+use Smartling\Helpers\DiagnosticsHelper;
+use Smartling\Helpers\SiteHelper;
+use Smartling\Settings\ConfigurationProfileEntity;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
@@ -11,10 +15,20 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  */
 class AcfAutoSetup
 {
+    const LOG_PREFIX = 'ACF Localization :: ';
+
     /**
      * @var ContainerBuilder
      */
     private $di;
+
+    /**
+     * @return LoggerInterface
+     */
+    public function getLogger()
+    {
+        return $this->getDi()->get('logger');
+    }
 
     private $definitions = [];
 
@@ -26,6 +40,19 @@ class AcfAutoSetup
     ];
 
     private $filters = [];
+
+    /**
+     * @return SiteHelper
+     */
+    public function getSiteHelper()
+    {
+        return $this->getEntityHelper()->getSiteHelper();
+    }
+
+    public function getEntityHelper()
+    {
+        return $this->getDi()->get('entity.helper');
+    }
 
     public function filterSetup(array $filters)
     {
@@ -58,9 +85,260 @@ class AcfAutoSetup
         $this->di = $di;
     }
 
+    public function collectDefinitions()
+    {
+
+        $defs = [];
+
+        $this->getLogger()->debug(vsprintf('%sLooking for ACF definitions in the database', [self::LOG_PREFIX]));
+        $blogs = $this->getSiteHelper()->listBlogs();
+        $profiles = $this->getEntityHelper()->getSettingsManager()->getEntities();
+        $blogsToSearch = [];
+
+        foreach ($profiles as $profile) {
+            /**
+             * @var ConfigurationProfileEntity $profile
+             */
+            if (($profile instanceof ConfigurationProfileEntity) && 1 === (int)$profile->getIsActive() &&
+                in_array($profile->getOriginalBlogId()->getBlogId(), $blogs)
+            ) {
+                $blogsToSearch[] = $profile->getOriginalBlogId()->getBlogId();
+            }
+        }
+
+        foreach ($blogsToSearch as $blog) {
+
+            try {
+                $this->getLogger()->debug(vsprintf('%sLooking for profiles for blog %s', [self::LOG_PREFIX, $blog]));
+                $applicableProfiles = $this->getEntityHelper()->getSettingsManager()->findEntityByMainLocale($blog);
+                if (0 === count($applicableProfiles)) {
+                    $this->getLogger()
+                        ->debug(vsprintf('%sNo suitable profile found for this blog %s', [self::LOG_PREFIX, $blog]));
+                } else {
+
+                    $groups = $this->getGroups($blog);
+
+                    if (0 < count($groups)) {
+                        foreach ($groups as $groupKey => $group) {
+
+                            $defs[$groupKey] = [
+                                'global_type' => 'group',
+                                'active'      => 1,
+                            ];
+
+                            $fields = $this->getFieldsByGroup($blog, [$groupKey => $group]);
+
+                            if (0 < count($fields) && false !== $fields) {
+                                foreach ($fields as $fieldKey => $field) {
+                                    $defs[$fieldKey] = [
+                                        'global_type' => 'field',
+                                        'type'        => $field['type'],
+                                        'name'        => $field['name'],
+                                        'parent'      => $field['parent'],
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                $this->getLogger()
+                    ->warning(vsprintf('%sAn error occurred while generating filters from database', [self::LOG_PREFIX]));
+            }
+        }
+
+        return $defs;
+    }
+
     public function __construct(ContainerBuilder $di)
     {
         $this->setDi($di);
+    }
+
+    protected function getGroups($blogId)
+    {
+        $dbGroups = [];
+        $needChange = $this->getSiteHelper()->getCurrentBlogId() !== $blogId;
+        try {
+            if ($needChange) {
+                $this->getSiteHelper()->switchBlogId($blogId);
+            }
+            $dbGroups = $this->rawReadGroups();
+
+        } catch (\Exception $e) {
+            $this->getLogger()->warning(
+                vsprintf('%sError occurred while reading ACF data from blog %s. Message: %s',
+                         [self::LOG_PREFIX, $blogId, $e->getMessage()]
+                )
+            );
+        } finally {
+            if ($needChange) {
+                $this->getSiteHelper()->restoreBlogId();
+            }
+        }
+
+        return $dbGroups;
+    }
+
+    /**
+     * Reads the list of groups from database
+     * @return array
+     */
+    private function rawReadGroups()
+    {
+        $args = [
+            'posts_per_page'   => 100000,
+            'post_type'        => 'acf-field-group',
+            'orderby'          => 'menu_order title',
+            'order'            => 'ASC',
+            'suppress_filters' => false,
+            'post_status'      => ['publish'],
+        ];
+        $posts = get_posts($args);
+        $groups = [];
+        foreach ($posts as $post) {
+            $groups[$post->post_name] = [
+                'title'   => $post->post_title,
+                'post_id' => $post->ID,
+            ];
+        }
+
+        return $groups;
+    }
+
+    private function rawReadFields($parentId, $parentKey)
+    {
+        $args = [
+            'posts_per_page'   => 100000,
+            'post_type'        => 'acf-field',
+            'orderby'          => 'menu_order title',
+            'order'            => 'ASC',
+            'suppress_filters' => false,
+            'post_status'      => ['publish'],
+            'post_parent'      => $parentId,
+        ];
+        $posts = get_posts($args);
+        $fields = [];
+        foreach ($posts as $post) {
+            $configuration = unserialize($post->post_content);
+            $fields[$post->post_name] = [
+                'parent' => $parentKey,
+                'name'   => $post->post_excerpt,
+                'type'   => $configuration['type'],
+            ];
+            $subFields = $this->rawReadFields($post->ID, $post->post_name);
+            if (0 < count($subFields)) {
+                $fields = array_merge($fields, $subFields);
+            }
+        }
+
+        return $fields;
+    }
+
+    protected function getFieldsByGroup($blogId, $group)
+    {
+        $dbFields = [];
+        $needChange = $this->getSiteHelper()->getCurrentBlogId() !== $blogId;
+        try {
+            if ($needChange) {
+                $this->getSiteHelper()->switchBlogId($blogId);
+            }
+
+            $key = reset(array_keys($group));
+            $id = $group['post_id'];
+
+            $dbFields = $this->rawReadFields($id, $key);
+
+        } catch (\Exception $e) {
+            $this->getLogger()->warning(
+                vsprintf('%sError occurred while reading ACF data from blog %s. Message: %s',
+                         [self::LOG_PREFIX, $blogId, $e->getMessage()]
+                )
+            );
+        } finally {
+            if ($needChange) {
+                $this->getSiteHelper()->restoreBlogId();
+            }
+        }
+
+        return $dbFields;
+    }
+
+    private function getLocaldefinitions()
+    {
+        $acf = (array)$this->getAcf();
+
+        $defs = [];
+
+        if (array_key_exists('local', $acf)) {
+            if ($acf['local'] instanceof \acf_local) {
+                /**
+                 * @var \acf_local $local
+                 */
+                $local = $acf['local'];
+                $groups = $local->groups;
+
+                if (is_array($groups) && 0 < count($groups)) {
+                    foreach ($groups as $group) {
+                        $defs[$group['key']] = [
+                            'global_type' => 'group',
+                            'active'      => $group['active'],
+                        ];
+                    }
+                }
+
+                $fields = $local->fields;
+
+                if (is_array($fields) && 0 < count($fields)) {
+                    foreach ($fields as $field) {
+                        $defs[$field['key']] = [
+                            'global_type' => 'field',
+                            'type'        => $field['type'],
+                            'name'        => $field['name'],
+                            'parent'      => $field['parent'],
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $defs;
+    }
+
+    /**
+     * @param array $localDefinitions
+     * @param array $dbDefinitions
+     *
+     * @return bool
+     */
+    private function verifyDefinitions(array $localDefinitions, array $dbDefinitions)
+    {
+        foreach ($dbDefinitions as $key => $definition) {
+            if (!array_key_exists($key, $localDefinitions)) {
+                return false;
+            } else {
+                switch ($definition['global_type']) {
+                    case 'field':
+                        $local = &$localDefinitions[$key];
+                        $dbdef = &$definition;
+                        if ($local['type'] !== $dbdef['type'] || $local['name'] !== $dbdef['name'] ||
+                            $local['parent'] !== $dbdef['parent']
+                        ) {
+                            // ACF Option Pages has internal issue in definition, so skip it:
+                            if ('group_572b269b668a4' === $local['parent']) {
+                                continue;
+                            }
+
+                            return false;
+                        }
+                        break;
+                    case 'group':
+                    default:
+                }
+            }
+        }
+
+        return true;
     }
 
     public function run()
@@ -79,24 +357,26 @@ class AcfAutoSetup
                             ],
                         ]
                     );
-                });
+                }
+            );
         }
 
         if (true === $this->checkAcfTypes()) {
-            $acf = $this->getAcf();
-
-            foreach ($acf->local->groups as $group) {
-                $this->addGroupDefinition($group);
+            $dbDefinitions = $this->collectDefinitions();
+            $localDefinitions = $this->getLocaldefinitions();
+            if (false === $this->verifyDefinitions($localDefinitions, $dbDefinitions)) {
+                $url = admin_url('edit.php?post_type=acf-field-group&page=acf-settings-tools');
+                $msg = [
+                    'ACF Configuration has been changed.',
+                    'Please update groups and fields definitions for all sites (As PHP generated code).',
+                    vsprintf('Use <strong><a href="%s">this</a></strong> page to generate export code and add it to your theme or extra plugin.', [$url]),
+                ];
+                DiagnosticsHelper::addDiagnosticsMessage(implode('<br/>', $msg));
             }
-
-            foreach ($acf->local->fields as $field) {
-                $this->addFieldDefinition($field);
-            }
-
+            $definitions = array_merge($localDefinitions, $dbDefinitions);
+            $this->definitions = $definitions;
             $this->sortFields();
-
             $this->prepareFilters();
-
             add_filter('smartling_register_field_filter', [$this, 'filterSetup'], 1);
         }
     }
@@ -187,9 +467,7 @@ class AcfAutoSetup
                 return 'post';
                 break;
             case 'taxonomy':
-                $t = $this->getAcf()->local->fields[$key];
-
-                return $t['taxonomy'];
+                return 'taxonomy';
                 break;
             default:
                 return 'none';
@@ -258,24 +536,6 @@ class AcfAutoSetup
                     $this->getDi()->get('logger')->debug(vsprintf('Got unknown type: %s', [$definition['type']]));
             }
         }
-    }
-
-    private function addGroupDefinition(array $rawGroupDefinition)
-    {
-        $this->definitions[$rawGroupDefinition['key']] = [
-            'global_type' => 'group',
-            'active'      => $rawGroupDefinition['active'],
-        ];
-    }
-
-    private function addFieldDefinition(array $rawFieldDefinition)
-    {
-        $this->definitions[$rawFieldDefinition['key']] = [
-            'global_type' => 'field',
-            'type'        => $rawFieldDefinition['type'],
-            'name'        => $rawFieldDefinition['name'],
-            'parent'      => $rawFieldDefinition['parent'],
-        ];
     }
 
     private function getPostTypes()

@@ -3,7 +3,6 @@
 namespace Smartling\ACF;
 
 use Smartling\Bootstrap;
-use Smartling\ContentTypeAcfOption;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
