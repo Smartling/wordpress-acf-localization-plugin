@@ -55,7 +55,7 @@ class Bootloader
         return self::getPluginMeta($pluginFile, 'Plugin Name');
     }
 
-    private function checkConnectorVersion($pluginFile)
+    private static function checkConnectorVersion($pluginFile)
     {
         $requiredVersion = self::getPluginMeta($pluginFile, 'ConnectorRequiredMin');
         $realVersion = Bootstrap::$pluginVersion;

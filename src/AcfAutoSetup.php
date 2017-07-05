@@ -243,9 +243,10 @@ class AcfAutoSetup
             if ($needChange) {
                 $this->getSiteHelper()->switchBlogId($blogId);
             }
-
-            $key = reset(array_keys($group));
-            $id = $group['post_id'];
+            $keys = array_keys($group);
+            $key = reset($keys);
+            $_group = reset($group);
+            $id = $_group['post_id'];
 
             $dbFields = $this->rawReadFields($id, $key);
 
