@@ -148,7 +148,7 @@ class AcfOptionEntity extends \Smartling\DbAl\WordpressContentEntities\VirtualEn
      *
      * @return mixed
      */
-    public function getAll($limit = '', $offset = 0, $orderBy = false, $order = false)
+    public function getAll($limit = '', $offset = 0, $orderBy = false, $order = false, $searchString = '')
     {
         $this->buildMap();
         $collection = [];
