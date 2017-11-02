@@ -566,8 +566,9 @@ class AcfAutoSetup
     {
         $obj = new static($di);
 
-        add_action('admin_init', function () use ($obj) {
+        $action = is_admin() ? 'admin_init' : 'init';
+        add_action($action, function () use ($obj) {
             $obj->run();
-        });
+        }, 99);
     }
 }
